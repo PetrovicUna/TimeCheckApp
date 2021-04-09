@@ -2,15 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TimeCheckApp.Models;
 
 namespace TimeCheckApp.Migrations
 {
     [DbContext(typeof(TimeCheckAppDbContext))]
-    partial class TimeCheckAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210409103718_AddTemporaryDataParemetersToTable")]
+    partial class AddTemporaryDataParemetersToTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

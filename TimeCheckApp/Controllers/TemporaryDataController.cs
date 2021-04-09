@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +15,13 @@ namespace TimeCheckApp.Controllers
 {
     public class TemporaryDataController : Controller
     {
+
+        private readonly TimeCheckAppDbContext _context;
+
+        public TemporaryDataController(TimeCheckAppDbContext context)
+        {
+            _context = context;
+        }
         // GET: HomeController1
         [HttpGet]
         public IActionResult Index(List<TemporaryData> temporaryData = null)
@@ -24,67 +33,95 @@ namespace TimeCheckApp.Controllers
         [HttpPost]
         public ActionResult Index(IFormFile file, [FromServices] IHostingEnvironment hostingEnviroment)
         {
-            //string fileName = $"{hostingEnviroment.WebRootPath}\\files\\{file.FileName}";
-            //using (FileStream fileStream = System.IO.File.Create(fileName))
-            //{
-            //    file.CopyTo(fileStream);
-            //    fileStream.Flush();
-            //}
+            string fileName = $"{hostingEnviroment.WebRootPath}\\files\\{file.FileName}";
+            using (FileStream fileStream = System.IO.File.Create(fileName))
+            {
+                file.CopyTo(fileStream);
+                fileStream.Flush();
+            }
 
-            //var data = GetTemporaryData(file.FileName);
+            GetTemporaryData(file.FileName);
             return View();
         }
 
-        private List<TemporaryData> GetTemporaryData(string fName)
+        private void GetTemporaryData(string fName)
         {
-            //    List<TemporaryData> data = new List<TemporaryData>();
-            //    var fileName = $"{Directory.GetCurrentDirectory()}{@"\wwwroot\files"}" + "\\" + fName;
-            //    System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            //    using(var stream = System.IO.File.Open(fileName, FileMode.Open, FileAccess.Read))
-            //    {
-            //        using(var reader= ExcelReaderFactory.CreateReader(stream))
-            //        {
-            //            for (int i = 1; i < reader.RowCount; i++)
-            //           {
-            //                foreach (var item in )
-            //                {
+            List<TemporaryData> data = new List<TemporaryData>();
+            var fileName = $"{Directory.GetCurrentDirectory()}{@"\wwwroot\files"}" + "\\" + fName;
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-            //                }
-            //                data.Add(new TemporaryData()
-            //                {
-            //                    Date = reader.GetDateTime(0),
-            //                    PersonNumber = reader.GetInt32(1),
-            //                    EmployeeName = reader.GetValue(2).ToString(),
-            //                    ProjectCode = reader.GetValue(3).ToString(),
-            //                    ProjectName = reader.GetValue(4).ToString(),
-            //                    TaskName = reader.GetValue(5).ToString(),
-            //                    TimeType = reader.GetValue(6).ToString(),
-            //                    Location = reader.GetValue(7).ToString(),
-            //                    Hours = float.Parse(reader.GetValue(8).ToString()),
-            //                    Commnent = reader.GetValue(9).ToString(),
-            //                    TaskNumber = Convert.ToInt32(reader.GetValue(10)),
-            //                    Username = reader.GetValue(11).ToString(),
-            //                    LineManagerName = reader.GetValue(12).ToString(),
-            //                    Country = reader.GetValue(13).ToString(),
-            //                    TimeEntryStatus = reader.GetValue(14).ToString(),
-            //                    TimeCardStatus = reader.GetValue(15).ToString(),
-            //                    Client = reader.GetValue(16).ToString(),
-            //                    FullName = reader.GetValue(17).ToString(),
-            //                    Days = float.Parse(reader.GetValue(18).ToString()),
-            //                    WorkLocation = reader.GetValue(19).ToString(),
-            //                    GradeCode = reader.GetValue(20).ToString(),
-            //                    GradeName = reader.GetValue(21).ToString(),
-            //                    LMPersonNumber = Convert.ToInt32(reader.GetValue(22)),
-            //                    FM = reader.GetValue(23).ToString(),
-            //                    Activity = reader.GetValue(24).ToString()
 
-            //                });
-            //            }  
-            //        }
+            FileInfo file = new FileInfo(fileName);
 
-            //        return data;
-            //    }
-            //}
+            using (ExcelPackage package = new ExcelPackage(file))
+            {
+                var worksheet = package.Workbook.Worksheets["Sheet1"];
+                int rowCount = worksheet.Dimension.Rows;
+                int ColCount = worksheet.Dimension.Columns;
+
+                string[] rawText = new string[25];
+
+                List<string> list = null;
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    for (int col = 1; col <= ColCount; col++)
+                    {
+                        if (worksheet.Cells[row, col].Value == null)
+                            worksheet.Cells[row, col].Value = string.Empty;
+
+
+                        rawText[col] = worksheet.Cells[row, col].Value.ToString();
+
+                    }
+                    float hours;
+                    float days;
+                    var som = float.TryParse(rawText[9].ToString(), out hours);
+                    var som1 = float.TryParse(rawText[20].ToString(), out days);
+
+                    data.Add(new TemporaryData()
+                    {
+                        Date = rawText[1].ToString(),
+                        PersonNumber = rawText[2].ToString(),
+                        EmployeeName = rawText[3].ToString(),
+                        ProjectCode = rawText[4].ToString(),
+                        ProjectName = rawText[5].ToString(),
+                        TaskName = rawText[6].ToString(),
+                        TimeType = rawText[7].ToString(),
+                        Location = rawText[8].ToString(),
+                        Hours = hours,
+                        Commnent = rawText[10].ToString(),
+                        TaskNumber = rawText[11].ToString(),
+                        Username = rawText[12].ToString(),
+                        LineManagerName = rawText[13].ToString(),
+                        Country = rawText[14].ToString(),
+                        TimeEntryStatus = rawText[15].ToString(),
+                        TimeCardStatus = rawText[16].ToString(),
+                        Client = rawText[17].ToString(),
+                        RelocatedCountry = rawText[18].ToString(),
+                        FullName = rawText[19].ToString(),
+                        Days = days,
+                        WorkLocation = rawText[21].ToString(),
+                        GradeCode = rawText[22].ToString(),
+                        GradeName = rawText[23].ToString(),
+                        LMPersonNumber = rawText[24].ToString()
+
+                    }) ;
+                }
+
+            }
+
+            SaveData(data);
+        }
+
+        private void SaveData(List<TemporaryData> list)
+        {
+            foreach (var item in list)
+            {
+                _context.TemporaryData.Add(item);
+                _context.SaveChanges();
+            }
+            
         }
     }
 }
