@@ -8,11 +8,12 @@ namespace TimeCheckApp.Models
 {
     public class Grades
     {
-        [Key]
+        public int ID { get; set; }
+
         public int GradeCode { get; set; }
 
         public string GradeName { get; set; }
 
-        public Person Person { get; set; }
+        public Person Person  { get; set; }
     }
 }

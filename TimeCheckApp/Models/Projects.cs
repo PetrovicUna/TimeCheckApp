@@ -15,6 +15,6 @@ namespace TimeCheckApp.Models
 
         public string Client { get; set; }
 
-        public ICollection<ProjectTask> ProjectTasks { get; set; }
+        public ICollection<ProjectTask> ProjectTasks  { get; set; }
     }
 }

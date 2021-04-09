@@ -14,12 +14,7 @@ namespace TimeCheckApp.Models
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
-        enum Status
-        {
-            Approved,
-            Saved,
-            Submmited
-        }
+        public string Status { get; set; }
 
         public string Comment { get; set; }
 
@@ -41,7 +36,13 @@ namespace TimeCheckApp.Models
 
         public int TaskID { get; set; }
 
- 
 
+
+        public enum Statuses
+        {
+            Approved,
+            Saved,
+            Submmited
+        }
     }
 }

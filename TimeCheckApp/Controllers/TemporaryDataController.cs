@@ -116,11 +116,26 @@ namespace TimeCheckApp.Controllers
 
         private void SaveData(List<TemporaryData> list)
         {
+            List<Person> people = new List<Person>();
+
             foreach (var item in list)
             {
+                people.Add(new Person
+                {
+                    Name = item.EmployeeName,
+                    Username = item.Username,
+                    PersonNumber = Convert.ToInt32(item.PersonNumber),
+
+                });
+            
                 _context.TemporaryData.Add(item);
                 _context.SaveChanges();
             }
+            
+        }
+
+        private void SavePerson(List<Person> list)
+        {
             
         }
     }

@@ -39,7 +39,7 @@ namespace TimeCheckApp.Models
             modelBuilder.Entity<Grades>()
               .HasOne(t => t.Person)
               .WithOne(e => e.Grades)
-              .HasForeignKey<Person>(e => e.GradeCode);
+              .HasForeignKey<Person>(e => e.GradeID);
 
             modelBuilder.Entity<ProjectTask>()
                 .HasKey(pt => new { pt.ProjectID, pt.TaskID });

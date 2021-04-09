@@ -5,9 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Controllers\WorkingHoursController.cs" />
     <Compile Remove="Migrations\20210408110510_AddingRelationShipsBetweenTablesAndAnotherTables.cs" />
     <Compile Remove="Migrations\20210408110510_AddingRelationShipsBetweenTablesAndAnotherTables.Designer.cs" />
+    <Compile Remove="Migrations\20210409121141_AddCountryInsidePerson.cs" />
+    <Compile Remove="Migrations\20210409121141_AddCountryInsidePerson.Designer.cs" />
+    <Compile Remove="Migrations\20210409122245_AddIDInsideGrades.cs" />
+    <Compile Remove="Migrations\20210409122245_AddIDInsideGrades.Designer.cs" />
+    <Compile Remove="Migrations\20210409122616_IDInGradesAndForeignKeyInPerson.cs" />
+    <Compile Remove="Migrations\20210409122616_IDInGradesAndForeignKeyInPerson.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

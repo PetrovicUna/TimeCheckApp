@@ -15,23 +15,24 @@ namespace TimeCheckApp.Models
 
         public int PersonNumber { get; set; }
 
-        //dodati country u bazu
-        public enum Country
-        {
-            RS,
-            SI
-        }
-
+        public string Country { get; set; }
         public string WorkLocation { get; set; }
 
 
-        [ForeignKey("GradeCode")]
+        [ForeignKey("GradeID")] 
         public Grades Grades { get; set; }
-        public int GradeCode { get; set; }
+        public int GradeID { get; set; }
 
 
         public ICollection<WorkingHours> WorkingHours { get; set; }
 
         public ICollection<PersonAbsences> PersonAbsences { get; set; }
     }
+    //dodati country u bazu
+        public enum Country
+        {
+            RS,
+            SI
+        }
+
 }

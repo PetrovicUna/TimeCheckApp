@@ -18,13 +18,15 @@ namespace TimeCheckApp.Models
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
-        enum AbsenceType
-        {
-            Holiday,
-            SickLeave,
-            AdministrativeObligations
-        }
+        public AbsenceType AbsenceType { get; set; } 
 
         public ICollection<PersonAbsences> PersonAbsences { get; set; }
+    }
+
+    public enum AbsenceType
+    {
+        Holiday,
+        SickLeave,
+        AdministrativeObligations
     }
 }
