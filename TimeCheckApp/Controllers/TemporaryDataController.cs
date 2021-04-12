@@ -187,6 +187,54 @@ namespace TimeCheckApp.Controllers
                 SaveTask(tasks);
             }
 
+            else
+            {
+                List<Tasks> tasks = new List<Tasks>();
+
+                foreach (var taskNumber in taskListDistinct)
+                {
+                    var newTask = Tasks.FirstOrDefault(x => x.TaskNumber == taskNumber);
+                    tasks.Add(newTask);
+                }
+
+                List<Projects> projects = new List<Projects>();
+
+                foreach (var projectCode in projectListDistinct)
+                {
+                    var newProject = Projects.FirstOrDefault(x => x.ProjectCode == projectCode);
+                    projects.Add(newProject);
+                }
+
+                if (dbProject.Count < projects.Count)
+                {
+                    var newProjectProjectCode = Projects.Select(x => x.ProjectCode).Distinct();
+                    var ProjectInDb = _context.Projects.Where(p => newProjectProjectCode
+                                                     .Contains(p.ProjectCode))
+                                                     .Select(p => p.ProjectCode).ToArray();
+
+                    var ProjectNotInDb = Projects.Where(p => !ProjectInDb.Contains(p.ProjectCode));
+                    foreach (Projects project in ProjectNotInDb)
+                    {
+                        _context.Projects.Add(project);
+                        _context.SaveChanges();
+                    }
+                }
+
+                if (dbTask.Count < tasks.Count)
+                {
+                    var newTaskTaskNumber = Tasks.Select(x => x.TaskNumber).Distinct();
+                    var TaskInDb = _context.Tasks.Where(p => newTaskTaskNumber
+                                                     .Contains(p.TaskNumber))
+                                                     .Select(p => p.TaskNumber).ToArray();
+
+                    var TaskNotInDb = Tasks.Where(p => !TaskInDb.Contains(p.TaskNumber));
+                    foreach (Tasks task in TaskNotInDb)
+                    {
+                        _context.Tasks.Add(task);
+                        _context.SaveChanges();
+                    }
+                }
+            };
 
             List<ProjectTask> ProjectTasks = new List<ProjectTask>();
 
@@ -203,9 +251,6 @@ namespace TimeCheckApp.Controllers
                     ProjectID = project.ID,
                     TaskID = task.ID
                 });
-
-            
-                //SaveProjectTask(ProjectTasks);
             }
 
             List<ProjectTask> finalListProjectTasks = new List<ProjectTask>();
@@ -257,7 +302,7 @@ namespace TimeCheckApp.Controllers
                     var PersonNotInDb = people.Where(p => !PersonInDb.Contains(p.PersonNumber));
                     foreach (Person person in PersonNotInDb)
                     {
-                        _context.Add(person);
+                        _context.Persons.Add(person);
                         _context.SaveChanges();
                     }
                 }
