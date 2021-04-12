@@ -36,14 +36,7 @@ namespace TimeCheckApp.Models
                .WithOne(e => e.Tasks)
                .HasForeignKey(e => e.TaskID);
 
-            modelBuilder.Entity<Grades>()
-              .HasOne(t => t.Person)
-              .WithOne(e => e.Grades)
-              .HasForeignKey<Person>(e => e.GradeID);
-
-            modelBuilder.Entity<ProjectTask>()
-                .HasKey(pt => new { pt.ProjectID, pt.TaskID });
-
+          
             modelBuilder.Entity<ProjectTask>()
                 .HasOne(pt => pt.Project)
                 .WithMany(p => p.ProjectTasks)
@@ -66,6 +59,10 @@ namespace TimeCheckApp.Models
                 .HasOne(pa => pa.Absences)
                 .WithMany(a => a.PersonAbsences)
                 .HasForeignKey(pa => pa.AbsenceID);
+
+            modelBuilder.Entity<Person>()
+                .HasIndex(p => p.PersonNumber)
+                .IsUnique();
         }
     }
 }

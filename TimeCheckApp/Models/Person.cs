@@ -18,11 +18,9 @@ namespace TimeCheckApp.Models
         public string Country { get; set; }
         public string WorkLocation { get; set; }
 
+        public string GradeCode { get; set; }
 
-        [ForeignKey("GradeID")] 
-        public Grades Grades { get; set; }
-        public int GradeID { get; set; }
-
+        public string GradeName { get; set; }
 
         public ICollection<WorkingHours> WorkingHours { get; set; }
 

@@ -9,7 +9,7 @@ namespace TimeCheckApp.Models
     {
         public int ID { get; set; }
 
-        public int ProjectCode { get; set; }
+        public string ProjectCode { get; set; }
 
         public string ProjectName { get; set; }
 
