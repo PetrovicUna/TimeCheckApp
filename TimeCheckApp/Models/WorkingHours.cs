@@ -11,8 +11,7 @@ namespace TimeCheckApp.Models
     {
         public int ID { get; set; }
 
-        [DataType(DataType.Date)]
-        public DateTime Date { get; set; }
+        public string Date { get; set; }
 
         public string Status { get; set; }
 
@@ -20,12 +19,7 @@ namespace TimeCheckApp.Models
 
         public float Hours { get; set; }
 
-        enum BookingType
-        {
-            Regular,
-            Overtime,
-            ExtendedOvertime
-        }
+        public string BookingType { get; set; }
 
         [ForeignKey("PersonID")]
         public Person Person { get; set; }
@@ -37,6 +31,12 @@ namespace TimeCheckApp.Models
         public int TaskID { get; set; }
 
 
+        public enum BookingTypes
+        {
+            Regular,
+            Overtime,
+            ExtendedOvertime
+        }
 
         public enum Statuses
         {

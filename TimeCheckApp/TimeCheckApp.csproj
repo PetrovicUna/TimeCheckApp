@@ -34,8 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\Person\" />
-    <Folder Include="Views\WorkingHours\" />
     <Folder Include="wwwroot\files\" />
   </ItemGroup>
 

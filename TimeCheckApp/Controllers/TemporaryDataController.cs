@@ -121,6 +121,7 @@ namespace TimeCheckApp.Controllers
             List<Person> people = new List<Person>();
             List<Tasks> Tasks = new List<Tasks>();
             List<Projects> Projects = new List<Projects>();
+            List<WorkingHours> workingHours = new List<WorkingHours>();
 
             foreach (var item in list)
             {
@@ -151,6 +152,7 @@ namespace TimeCheckApp.Controllers
                     Client = item.Client
                 });
 
+         
                 _context.TemporaryData.Add(item);
                 _context.SaveChanges();
             }
@@ -307,7 +309,32 @@ namespace TimeCheckApp.Controllers
                     }
                 }
             };
-       }
+
+            foreach (var item in list)
+            {
+                DeleteWorkingHours();
+
+                var taskNumber = Convert.ToInt32(item.TaskNumber);
+                var personNumber = Convert.ToInt32(item.PersonNumber);
+
+                var personID = _context.Persons.FirstOrDefault(x => x.PersonNumber == personNumber).ID;
+                var taskID = _context.Tasks.FirstOrDefault(x => x.TaskNumber == taskNumber).ID;
+
+                workingHours.Add(new WorkingHours
+                {
+                    Date = item.Date,
+                    Status = item.TimeCardStatus,
+                    Comment = item.Commnent,
+                    Hours = item.Hours,
+                    BookingType = item.TimeType,
+                    PersonID = personID,
+                    TaskID = taskID
+                });
+            }
+
+            SaveWorkingHours(workingHours);
+            
+        }
 
 
         private void SavePerson(List<Person> list)
@@ -344,6 +371,22 @@ namespace TimeCheckApp.Controllers
                 _context.Projects.Add(item);
                 _context.SaveChanges();
             }
+        }
+
+        private void SaveWorkingHours(List<WorkingHours> list)
+        {
+            foreach (var item in list)
+            {
+                _context.WorkingHourses.Add(item);
+                _context.SaveChanges();
+            }
+        }
+
+        private void DeleteWorkingHours()
+        {
+            var all = from c in _context.WorkingHourses select c;
+            _context.WorkingHourses.RemoveRange(all);
+            _context.SaveChanges();
         }
     }
 }

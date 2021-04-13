@@ -58,6 +58,7 @@ namespace TimeCheckApp.Controllers
         {
             var workingHours = _context.WorkingHourses
                         .Include(wHour => wHour.Person)
+                        .Include(wHour => wHour.Tasks)
                         .ToList();
 
             CalculateMonthlyQuota();
