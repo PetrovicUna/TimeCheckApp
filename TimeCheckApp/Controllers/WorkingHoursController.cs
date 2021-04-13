@@ -54,12 +54,25 @@ namespace TimeCheckApp.Controllers
         }
 
         // GET: WorkingHoursController
-        public ActionResult Index()
+        public ActionResult Index(string searchString, string searchDateString)
         {
+            ViewData["Search"] = searchString;
+            ViewData["SearchDate"] = searchDateString;
+
             var workingHours = _context.WorkingHourses
-                        .Include(wHour => wHour.Person)
-                        .Include(wHour => wHour.Tasks)
-                        .ToList();
+                       .Include(wHour => wHour.Person)
+                       .Include(wHour => wHour.Tasks)
+                       .ToList();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                workingHours = workingHours.Where(w => w.Person.Name.Contains(searchString)).ToList();
+            }
+
+            if(!string.IsNullOrEmpty(searchDateString))
+            {
+                workingHours = workingHours.Where(w => w.Date.Contains(searchDateString)).ToList();
+            }
 
             CalculateMonthlyQuota();
 

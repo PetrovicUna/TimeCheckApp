@@ -152,7 +152,7 @@ namespace TimeCheckApp.Controllers
                     Client = item.Client
                 });
 
-         
+
                 _context.TemporaryData.Add(item);
                 _context.SaveChanges();
             }
@@ -164,7 +164,9 @@ namespace TimeCheckApp.Controllers
             var dbProject = _context.Projects.ToList();
             var projectListDistinct = Projects.Select(x => x.ProjectCode).Distinct();
 
-            if(dbProject.Count == 0 && dbTask.Count == 0)
+            #region Project & Task
+
+            if (dbProject.Count == 0 && dbTask.Count == 0)
             {
                 List<Projects> projects = new List<Projects>();
 
@@ -207,6 +209,8 @@ namespace TimeCheckApp.Controllers
                     projects.Add(newProject);
                 }
 
+                #region If we have new project, which is not in db
+
                 if (dbProject.Count < projects.Count)
                 {
                     var newProjectProjectCode = Projects.Select(x => x.ProjectCode).Distinct();
@@ -222,6 +226,29 @@ namespace TimeCheckApp.Controllers
                     }
                 }
 
+                #endregion
+
+                #region Delete project from db if we don't have it in excel
+
+                if (dbProject.Count > projects.Count)
+                {
+
+                    var newProjectProjectCode = dbProject.Select(x => x.ProjectCode).Distinct();
+                    var ProjectInList = projects.Where(p => newProjectProjectCode
+                                                     .Contains(p.ProjectCode))
+                                                     .Select(p => p.ProjectCode).ToArray();
+
+                    var ProjectNotInList = dbProject.Where(p => !ProjectInList.Contains(p.ProjectCode));
+                    foreach (Projects projects1 in ProjectNotInList)
+                    {
+                        _context.Projects.Remove(projects1);
+                        _context.SaveChanges();
+                    }
+                }
+
+                #endregion
+
+                #region if we have new task, which is not in db
                 if (dbTask.Count < tasks.Count)
                 {
                     var newTaskTaskNumber = Tasks.Select(x => x.TaskNumber).Distinct();
@@ -236,6 +263,28 @@ namespace TimeCheckApp.Controllers
                         _context.SaveChanges();
                     }
                 }
+
+                #endregion
+
+                #region Delete task from db if we don't have it in excel
+
+                if (dbTask.Count > tasks.Count)
+                {
+                    var newTaskTaskNumber = dbTask.Select(x => x.TaskNumber).Distinct();
+                    var TaskInList = tasks.Where(p => newTaskTaskNumber
+                                                     .Contains(p.TaskNumber))
+                                                     .Select(p => p.TaskNumber).ToArray();
+
+                    var TaskNotInList = dbTask.Where(p => !TaskInList.Contains(p.TaskNumber));
+                    foreach (Tasks task in TaskNotInList)
+                    {
+                        _context.Tasks.Add(task);
+                        _context.SaveChanges();
+                    }
+                }
+
+                #endregion
+
             };
 
             List<ProjectTask> ProjectTasks = new List<ProjectTask>();
@@ -271,6 +320,10 @@ namespace TimeCheckApp.Controllers
             }
 
             SaveProjectTask(finalListProjectTasks);
+
+            #endregion
+
+            #region People
 
             if (dbPeople.Count == 0)
             {
@@ -308,7 +361,27 @@ namespace TimeCheckApp.Controllers
                         _context.SaveChanges();
                     }
                 }
+
+                if (dbPeople.Count > persons.Count)
+                {
+
+                    var newPersonPersonNumber = dbPeople.Select(x => x.PersonNumber).Distinct();
+                    var PersonInList = persons.Where(p => newPersonPersonNumber
+                                                     .Contains(p.PersonNumber))
+                                                     .Select(p => p.PersonNumber).ToArray();
+
+                    var PersonNotInList = dbPeople.Where(p => !PersonInList.Contains(p.PersonNumber));
+                    foreach (Person person in PersonNotInList)
+                    {
+                        _context.Persons.Remove(person);
+                        _context.SaveChanges();
+                    }
+                }
             };
+
+            #endregion
+
+            #region Working Hours
 
             foreach (var item in list)
             {
@@ -333,10 +406,11 @@ namespace TimeCheckApp.Controllers
             }
 
             SaveWorkingHours(workingHours);
-            
+
+            #endregion
         }
 
-
+        #region Saving Methods
         private void SavePerson(List<Person> list)
         {
             foreach(var item in list)
@@ -388,6 +462,8 @@ namespace TimeCheckApp.Controllers
             _context.WorkingHourses.RemoveRange(all);
             _context.SaveChanges();
         }
+
+        #endregion
     }
 }
 

@@ -24,7 +24,8 @@ namespace TimeCheckApp.Models
         [ForeignKey("PersonID")]
         public Person Person { get; set; }
         public int PersonID { get; set; }
-
+        
+        [Display(Name = "Task")]
         [ForeignKey("TaskID")]
         public Tasks Tasks { get; set; }
 
