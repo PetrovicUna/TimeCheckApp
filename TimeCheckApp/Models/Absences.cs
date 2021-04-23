@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace TimeCheckApp.Models
 {
@@ -11,22 +9,28 @@ namespace TimeCheckApp.Models
     {
         public int ID { get; set; }
 
-        public int PersonID { get; set; }
-
+        [Display(Name = "Absence Hours")]
         public float Hours { get; set; }
 
+        [Display(Name = "Absence Date")]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
-        public AbsenceType AbsenceType { get; set; } 
+        [Display(Name = "Absence Type")]
+        public string AbsenceType { get; set; }
 
-        public ICollection<PersonAbsences> PersonAbsences { get; set; }
-    }
+        public int week { get; set; }
 
-    public enum AbsenceType
-    {
-        Holiday,
-        SickLeave,
-        AdministrativeObligations
+        [ForeignKey("PersonID")]
+        public Person Person { get; set; }
+
+        public int PersonID { get; set; }
+
+        public enum AbsencesType
+        {
+            Holiday,
+            SickLeave,
+            AdministrativeObligations
+        }
     }
 }

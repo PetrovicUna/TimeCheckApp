@@ -11,7 +11,10 @@ namespace TimeCheckApp.Models
     {
         public int ID { get; set; }
 
-        public string Date { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime Date { get; set; }
+
+        public int week { get; set; }
 
         public string Status { get; set; }
 
@@ -19,16 +22,20 @@ namespace TimeCheckApp.Models
 
         public float Hours { get; set; }
 
+        [Display(Name = "Booking Type")]
         public string BookingType { get; set; }
 
         [ForeignKey("PersonID")]
         public Person Person { get; set; }
+
+        [Display(Name = "Person")]
         public int PersonID { get; set; }
         
         [Display(Name = "Task")]
         [ForeignKey("TaskID")]
         public Tasks Tasks { get; set; }
 
+        [Display(Name = "Task")]
         public int TaskID { get; set; }
 
 

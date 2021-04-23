@@ -1,8 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace TimeCheckApp.Models
 {
@@ -23,11 +20,10 @@ namespace TimeCheckApp.Models
         public DbSet<TemporaryData> TemporaryData { get; set; }
 
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Person>()
-                .HasMany(c => c.WorkingHours)
+                .HasMany(c => c.Absences)
                 .WithOne(e => e.Person)
                 .HasForeignKey(e => e.PersonID);
 
@@ -36,7 +32,6 @@ namespace TimeCheckApp.Models
                .WithOne(e => e.Tasks)
                .HasForeignKey(e => e.TaskID);
 
-          
             modelBuilder.Entity<ProjectTask>()
                 .HasOne(pt => pt.Project)
                 .WithMany(p => p.ProjectTasks)
@@ -47,24 +42,9 @@ namespace TimeCheckApp.Models
                 .WithMany(t => t.ProjectTasks)
                 .HasForeignKey(pt => pt.TaskID);
 
-            modelBuilder.Entity<PersonAbsences>()
-               .HasKey(pa => new { pa.AbsenceID, pa.PersonID });
-
-            modelBuilder.Entity<PersonAbsences>()
-                .HasOne(pa => pa.Person)
-                .WithMany(p => p.PersonAbsences)
-                .HasForeignKey(pa => pa.PersonID);
-
-            modelBuilder.Entity<PersonAbsences>()
-                .HasOne(pa => pa.Absences)
-                .WithMany(a => a.PersonAbsences)
-                .HasForeignKey(pa => pa.AbsenceID);
-
             modelBuilder.Entity<Person>()
                 .HasIndex(p => p.PersonNumber)
                 .IsUnique();
         }
     }
 }
-
-//hyperium express service file

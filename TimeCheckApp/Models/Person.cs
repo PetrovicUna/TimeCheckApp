@@ -24,7 +24,8 @@ namespace TimeCheckApp.Models
 
         public ICollection<WorkingHours> WorkingHours { get; set; }
 
-        public ICollection<PersonAbsences> PersonAbsences { get; set; }
+        public ICollection<Absences> Absences { get; set; }
+
     }
     //dodati country u bazu
         public enum Country

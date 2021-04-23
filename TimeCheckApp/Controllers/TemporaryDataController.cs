@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ObjectsComparer;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
@@ -228,25 +230,25 @@ namespace TimeCheckApp.Controllers
 
                 #endregion
 
-                #region Delete project from db if we don't have it in excel
+                //#region Delete project from db if we don't have it in excel
 
-                if (dbProject.Count > projects.Count)
-                {
+                //if (dbProject.Count > projects.Count)
+                //{
 
-                    var newProjectProjectCode = dbProject.Select(x => x.ProjectCode).Distinct();
-                    var ProjectInList = projects.Where(p => newProjectProjectCode
-                                                     .Contains(p.ProjectCode))
-                                                     .Select(p => p.ProjectCode).ToArray();
+                //    var newProjectProjectCode = dbProject.Select(x => x.ProjectCode).Distinct();
+                //    var ProjectInList = projects.Where(p => newProjectProjectCode
+                //                                     .Contains(p.ProjectCode))
+                //                                     .Select(p => p.ProjectCode).ToArray();
 
-                    var ProjectNotInList = dbProject.Where(p => !ProjectInList.Contains(p.ProjectCode));
-                    foreach (Projects projects1 in ProjectNotInList)
-                    {
-                        _context.Projects.Remove(projects1);
-                        _context.SaveChanges();
-                    }
-                }
+                //    var ProjectNotInList = dbProject.Where(p => !ProjectInList.Contains(p.ProjectCode));
+                //    foreach (Projects projects1 in ProjectNotInList)
+                //    {
+                //        _context.Projects.Remove(projects1);
+                //        _context.SaveChanges();
+                //    }
+                //}
 
-                #endregion
+                //#endregion
 
                 #region if we have new task, which is not in db
                 if (dbTask.Count < tasks.Count)
@@ -266,24 +268,24 @@ namespace TimeCheckApp.Controllers
 
                 #endregion
 
-                #region Delete task from db if we don't have it in excel
+                //#region Delete task from db if we don't have it in excel
 
-                if (dbTask.Count > tasks.Count)
-                {
-                    var newTaskTaskNumber = dbTask.Select(x => x.TaskNumber).Distinct();
-                    var TaskInList = tasks.Where(p => newTaskTaskNumber
-                                                     .Contains(p.TaskNumber))
-                                                     .Select(p => p.TaskNumber).ToArray();
+                //if (dbTask.Count > tasks.Count)
+                //{
+                //    var newTaskTaskNumber = dbTask.Select(x => x.TaskNumber).Distinct();
+                //    var TaskInList = tasks.Where(p => newTaskTaskNumber
+                //                                     .Contains(p.TaskNumber))
+                //                                     .Select(p => p.TaskNumber).ToArray();
 
-                    var TaskNotInList = dbTask.Where(p => !TaskInList.Contains(p.TaskNumber));
-                    foreach (Tasks task in TaskNotInList)
-                    {
-                        _context.Tasks.Add(task);
-                        _context.SaveChanges();
-                    }
-                }
+                //    var TaskNotInList = dbTask.Where(p => !TaskInList.Contains(p.TaskNumber));
+                //    foreach (Tasks task in TaskNotInList)
+                //    {
+                //        _context.Tasks.Remove(task);
+                //        _context.SaveChanges();
+                //    }
+                //}
 
-                #endregion
+                //#endregion
 
             };
 
@@ -362,21 +364,48 @@ namespace TimeCheckApp.Controllers
                     }
                 }
 
-                if (dbPeople.Count > persons.Count)
+                Person pers = new Person();
+
+                foreach (var personExcel in persons)
                 {
-
-                    var newPersonPersonNumber = dbPeople.Select(x => x.PersonNumber).Distinct();
-                    var PersonInList = persons.Where(p => newPersonPersonNumber
-                                                     .Contains(p.PersonNumber))
-                                                     .Select(p => p.PersonNumber).ToArray();
-
-                    var PersonNotInList = dbPeople.Where(p => !PersonInList.Contains(p.PersonNumber));
-                    foreach (Person person in PersonNotInList)
+                    foreach (var personDb in dbPeople)
                     {
-                        _context.Persons.Remove(person);
-                        _context.SaveChanges();
+                        if (personDb.PersonNumber == personExcel.PersonNumber)
+                        {
+                            var cmpr = new Comparer();
+
+                            personExcel.ID = personDb.ID;
+
+                            bool isSame = cmpr.Compare(personDb, personExcel);
+
+                            if (!isSame)
+                            {
+                                pers = personExcel;
+                                _context.Entry(personDb).CurrentValues.SetValues(pers);
+                                _context.SaveChanges();
+                            }
+           
+                        }
                     }
                 }
+
+
+
+                //if (dbPeople.Count > persons.Count)
+                //{
+
+                //    var newPersonPersonNumber = dbPeople.Select(x => x.PersonNumber).Distinct();
+                //    var PersonInList = persons.Where(p => newPersonPersonNumber
+                //                                     .Contains(p.PersonNumber))
+                //                                     .Select(p => p.PersonNumber).ToArray();
+
+                //    var PersonNotInList = dbPeople.Where(p => !PersonInList.Contains(p.PersonNumber));
+                //    foreach (Person person in PersonNotInList)
+                //    {
+                //        _context.Persons.Remove(person);
+                //        _context.SaveChanges();
+                //    }
+                //}
             };
 
             #endregion
@@ -393,9 +422,26 @@ namespace TimeCheckApp.Controllers
                 var personID = _context.Persons.FirstOrDefault(x => x.PersonNumber == personNumber).ID;
                 var taskID = _context.Tasks.FirstOrDefault(x => x.TaskNumber == taskNumber).ID;
 
+                var year = item.Date.Substring(0, 4);
+                var month = item.Date.Substring(4, 2);
+                var day = item.Date.Substring(6, 2);
+
+                string date = year + "-" + month + "-" + day;
+
+                var datee = Convert.ToDateTime(date);
+
+                CultureInfo cul = CultureInfo.CurrentCulture;
+
+                int weekNum = cul.Calendar.GetWeekOfYear(
+                                datee,
+                                CalendarWeekRule.FirstDay,
+                                DayOfWeek.Monday);
+
+
                 workingHours.Add(new WorkingHours
                 {
-                    Date = item.Date,
+                    Date = datee,
+                    week = weekNum,
                     Status = item.TimeCardStatus,
                     Comment = item.Commnent,
                     Hours = item.Hours,
@@ -408,6 +454,8 @@ namespace TimeCheckApp.Controllers
             SaveWorkingHours(workingHours);
 
             #endregion
+
+            ViewBag.SuccessMessage = "Your data was successfuly inserted!";
         }
 
         #region Saving Methods

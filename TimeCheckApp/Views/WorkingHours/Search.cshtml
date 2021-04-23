@@ -1,0 +1,87 @@
+﻿@model IEnumerable<TimeCheckApp.Models.WorkingHoursAbsenceDTO>
+
+@{
+    ViewData["Title"] = "Search";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Search</title>
+</head>
+<body>
+    <br />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Person
+                </th>
+                <th>
+                    @ViewBag.PName
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Date)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Hours)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.BookingType)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.AbsenceHours)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.AbsenceType)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @{int weekNum = 0;}
+            @foreach (var item in Model)
+            {
+
+
+                @if (!weekNum.Equals(item.week))
+                {
+                    <tr>
+                        <td style="color:lightcoral;">
+                            <p style="font-size:medium; font-family:Verdana;">Week : @Html.DisplayFor(modelItem => item.week)</p>
+                        </td>
+                    </tr>
+
+                    {
+                        weekNum = item.week;
+                    }
+                }
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Hours)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BookingType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AbsenceHours)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AbsenceType)
+            </td>
+            <td>
+                @*<a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |*@
+            </td>
+        </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>
