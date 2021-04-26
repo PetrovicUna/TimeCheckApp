@@ -64,6 +64,7 @@ namespace TimeCheckApp.Controllers
                 string[] rawText = new string[28];
 
                 List<string> list = null;
+                //u excelu podaci krecu od 10og reda
 
                 for (int row = 10; row <= rowCount; row++)
                 {
@@ -78,8 +79,8 @@ namespace TimeCheckApp.Controllers
                     }
                     float hours;
                     float days;
-                    var som = float.TryParse(rawText[9].ToString(), out hours);
-                    var som1 = float.TryParse(rawText[20].ToString(), out days);
+                    var res = float.TryParse(rawText[9].ToString(), out hours);
+                    var ress = float.TryParse(rawText[20].ToString(), out days);
 
                     data.Add(new TemporaryData()
                     {

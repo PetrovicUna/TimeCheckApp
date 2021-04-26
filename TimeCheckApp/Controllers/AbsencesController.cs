@@ -56,7 +56,9 @@ namespace TimeCheckApp.Controllers
 
             persons = _context.Persons.ToList();
 
-            ViewBag.Persons = persons;
+            var personsFiltered = persons.OrderBy(x => x.Name);
+
+            ViewBag.Persons = personsFiltered;
 
             return View();
         }
@@ -64,24 +66,69 @@ namespace TimeCheckApp.Controllers
         // POST: HomeController1/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Absences model, string sortType)
+        public ActionResult Create(AbsenceDTO model, string sortType)
         {
+            Absences absence = new Absences();
+            List<Absences> absenceList = new List<Absences>();
+            List<DateTime> selectedDates = new List<DateTime>();
+
             try
             {
                 if (ModelState.IsValid)
                 {
-                    CultureInfo cul = CultureInfo.CurrentCulture;
+                    if (model.StartDate != null && model.EndDate == null)
+                    {
+                        CultureInfo cul = CultureInfo.CurrentCulture;
 
-                    int weekNum = cul.Calendar.GetWeekOfYear(
-                                    model.Date,
-                                    CalendarWeekRule.FirstDay,
-                                    DayOfWeek.Monday);
+                        int weekNum = cul.Calendar.GetWeekOfYear(
+                                        model.StartDate,
+                                        CalendarWeekRule.FirstDay,
+                                        DayOfWeek.Monday);
 
-                    model.week = weekNum;
-                    model.AbsenceType = sortType;
 
-                    _context.Absences.Add(model);
-                    _context.SaveChanges();
+                        absence.Date = model.StartDate;
+                        absence.Hours = model.Hours;
+                        absence.AbsenceType = sortType;
+                        absence.PersonID = model.PersonID;
+                        absence.week = weekNum;
+                        
+
+                        _context.Absences.Add(absence);
+                        _context.SaveChanges();
+                    }
+
+                    else if(model.StartDate != null && model.EndDate != null)
+                    {
+                        for (var date = model.StartDate; date <= model.EndDate; date = date.AddDays(1))
+                        {
+                            selectedDates.Add(date);
+                        }
+
+                        foreach (var item in selectedDates)
+                        {
+                            CultureInfo cul = CultureInfo.CurrentCulture;
+
+                            int weekNum = cul.Calendar.GetWeekOfYear(
+                                            item,
+                                            CalendarWeekRule.FirstDay,
+                                            DayOfWeek.Monday);
+
+                            absenceList.Add(new Absences
+                            {
+                                Date = item,
+                                AbsenceType = sortType,
+                                Hours = model.Hours,
+                                week = weekNum,
+                                PersonID = model.PersonID
+                            });
+                        }
+
+                        foreach (var item in absenceList)
+                        {
+                            _context.Absences.Add(item);
+                            _context.SaveChanges();
+                        }
+                    }
                 }
 
                 return RedirectToAction(nameof(Index));
@@ -95,43 +142,69 @@ namespace TimeCheckApp.Controllers
         // GET: HomeController1/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            Absences abs = _context.Absences.Where(
+             x => x.ID == id).SingleOrDefault();
+
+            var at = new List<SelectListItem>();
+
+            foreach (AbsencesType absencesType in Enum.GetValues(typeof(AbsencesType)))
+            {
+                at.Add(new SelectListItem
+                {
+                    Text = Enum.GetName(typeof(AbsencesType), absencesType),
+                    Value = absencesType.ToString()
+                });
+            }
+
+            ViewBag.AbsenceType = at;
+
+            var person = _context.Persons.FirstOrDefault(x => x.ID == abs.PersonID);
+            ViewBag.Person = person.Name;
+
+
+            return View(abs);
         }
 
         // POST: HomeController1/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(Absences model)
         {
-            try
+            Absences abs = _context.Absences.Where(
+              x => x.ID == model.ID).SingleOrDefault();
+
+            model.PersonID = abs.PersonID;
+
+            CultureInfo cul = CultureInfo.CurrentCulture;
+
+            int weekNum = cul.Calendar.GetWeekOfYear(
+                            model.Date,
+                            CalendarWeekRule.FirstDay,
+                            DayOfWeek.Monday);
+
+            model.week = weekNum;
+
+            if (abs != null)
             {
-                return RedirectToAction(nameof(Index));
+
+                _context.Entry(abs).CurrentValues.SetValues(model);
+                _context.SaveChanges();
+                return RedirectToAction("Index");
             }
-            catch
-            {
-                return View();
-            }
+            return View(model);
         }
 
         // GET: HomeController1/Delete/5
-        public ActionResult Delete(int id)
+        public ActionResult Delete(int? id)
         {
-            return View();
+            var absence = _context.Absences.Find(id);
+
+            _context.Absences.Remove(absence);
+
+            _context.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
         }
 
-        // POST: HomeController1/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
     }
 }

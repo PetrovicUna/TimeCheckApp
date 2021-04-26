@@ -22,5 +22,7 @@ namespace TimeCheckApp.Models
         public float AbsenceHours { get; set; }
 
         public string Status { get; set; }
+
+        public float SumHours { get; set; }
     }
 }

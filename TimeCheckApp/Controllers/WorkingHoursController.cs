@@ -26,12 +26,10 @@ namespace TimeCheckApp.Controllers
         public int WeekQuota;
 
 
-        protected void CalculateMonthlyQuota()
-        {
-            int year = DateTime.Now.Year;
-            int month = DateTime.Now.Month;
-
-            int weekNumberOfDays = 0;
+        protected void CalculateMonthlyQuota(DateTime datee)
+        { 
+            int year = datee.Year;
+            int month = datee.Month;
 
             int days = DateTime.DaysInMonth(year, month);
             List<DateTime> dates = new List<DateTime>();
@@ -42,17 +40,12 @@ namespace TimeCheckApp.Controllers
                 {
                     continue;
                 }
-                if (date.AddDays((double)(7 - date.DayOfWeek)).Date.Equals(DateTime.Now.AddDays((double)(7 - DateTime.Now.DayOfWeek)).Date))
-                {
-                    weekNumberOfDays++;
-                }
-                dates.Add(date);
+                dates.Add(date);  
+                
             }
-
             // int weekDays = dates.Where(d => d.DayOfWeek > DayOfWeek.Sunday & d.DayOfWeek < DayOfWeek.Saturday).Count();
             int weekDays = dates.Count();
             MonthQuota = weekDays * 8;
-            WeekQuota = weekNumberOfDays * 8;
         }
 
         // GET: WorkingHoursController
@@ -121,30 +114,43 @@ namespace TimeCheckApp.Controllers
 
                 var absencesFiltered = _context.Absences.Where(x => x.Person.Name.Contains(searchString)).ToList();
 
-                foreach (var item in workingHoursFiltered)
+                if (workingHoursFiltered != null && absencesFiltered != null)
                 {
-                    foreach (var abs in absencesFiltered)
+                    foreach (var item in workingHoursFiltered)
                     {
-                        if (abs.Date != item.Date)
+                        dto.Add(new WorkingHoursAbsenceDTO
                         {
-                            dto.Add(new WorkingHoursAbsenceDTO
-                            {
-                                Date = item.Date,
-                                Hours = item.Hours,
-                                BookingType = item.BookingType,
-                                week = item.week
-                            });
+                            Date = item.Date,
+                            Hours = item.Hours,
+                            BookingType = item.BookingType,
+                            week = item.week
+                        });
+                    }
+
+                    foreach(var abs in absencesFiltered)
+                    {
+                        var res = dto.FirstOrDefault(x => x.Date == abs.Date);
+
+                        if(res != null)
+                        {
+                            dto.Remove(res);
+
+                            res.AbsenceHours = abs.Hours;
+                            res.AbsenceType = abs.AbsenceType;
+
+                            dto.Add(res);
                         }
-                        if (abs.Date == item.Date)
+
+                        if (res == null)
                         {
                             dto.Add(new WorkingHoursAbsenceDTO
                             {
-                                Date = item.Date,
-                                Hours = item.Hours,
-                                BookingType = item.BookingType,
-                                AbsenceType = abs.AbsenceType,
+                                Date = abs.Date,
                                 AbsenceHours = abs.Hours,
-                                week = item.week
+                                AbsenceType = abs.AbsenceType,
+                                BookingType = null,
+                                Hours = 0,
+                                week = abs.week
                             });
                         }
                     }
@@ -160,13 +166,40 @@ namespace TimeCheckApp.Controllers
             if (!string.IsNullOrEmpty(bday) && (!string.IsNullOrEmpty(sumWH) && sumWH.Equals("true")))
             {
                 SearchWeekSum(bday);
-                return View("SearchSum");
+                return View("SearchWeekSum");
             }
 
             if(!string.IsNullOrEmpty(bday) && !string.IsNullOrEmpty(searchString) && (!string.IsNullOrEmpty(taskH) && taskH.Equals("true")))
             {
-                SearchWhTask(bday, searchString);
-                return View("Index");
+                var workingHourss = _context.WorkingHourses
+                       .Include(wHour => wHour.Person)
+                       .Include(wHour => wHour.Tasks).OrderBy(wHour => wHour.Date.Day)
+                       .ToList();
+
+                var bt = new List<SelectListItem>();
+
+                foreach (BookingTypes bookingType in Enum.GetValues(typeof(BookingTypes)))
+                {
+                    bt.Add(new SelectListItem
+                    {
+                        Text = Enum.GetName(typeof(BookingTypes), bookingType),
+                        Value = bookingType.ToString()
+                    });
+                }
+
+                ViewBag.BookingType = bt;
+
+                var date = Convert.ToDateTime(bday);
+
+                var month = date.Month;
+
+                if (!string.IsNullOrEmpty(searchString) && !string.IsNullOrEmpty(bday))
+                {
+                    workingHourss = _context.WorkingHourses.Where(x => x.Person.Name.Contains(searchString) && x.Date.Month == month).OrderBy(x => x.Date.Day).ToList();
+                }
+
+                return View("Index", workingHourss);
+              
             }
 
             var distinctWeek = workingHours.Select(x => x.week).Distinct();
@@ -208,12 +241,15 @@ namespace TimeCheckApp.Controllers
 
         public ActionResult SearchSum(string bday)
         {
-            CalculateMonthlyQuota();
+            DateTime date = Convert.ToDateTime(bday);
+
+            if(date != null)
+            {
+                CalculateMonthlyQuota(date);
+            }
 
             ViewBag.Monthly = MonthQuota;
-            ViewBag.Week = WeekQuota;
 
-            var date = Convert.ToDateTime(bday);
 
             var month = date.Month;
 
@@ -279,7 +315,7 @@ namespace TimeCheckApp.Controllers
                     var extended = ExtendedOvertimeHours.Sum(x => x);
                     var absence = AbsenceHours.Sum(x => x);
 
-                    ViewBag.CountH = regular + overtime + extended;
+                    var sumres = regular + overtime + extended;
 
                     sumDTOs.Add(new SumDto
                     {
@@ -289,7 +325,8 @@ namespace TimeCheckApp.Controllers
                         RegularHours = regular,
                         OvertimeHours = overtime,
                         ExtendedOvertimeHours = extended,
-                        AbsenceHours = absence
+                        AbsenceHours = absence,
+                        SumHours = sumres
                     });
 
                     RegularHours.Clear();
@@ -304,12 +341,7 @@ namespace TimeCheckApp.Controllers
 
         public ActionResult SearchWeekSum(string bday)
         {
-            CalculateMonthlyQuota();
-
-            ViewBag.Monthly = MonthQuota;
-            ViewBag.Week = WeekQuota;
-
-            var date = Convert.ToDateTime(bday);
+            DateTime date = Convert.ToDateTime(bday);
 
             CultureInfo cul = CultureInfo.CurrentCulture;
 
@@ -317,6 +349,28 @@ namespace TimeCheckApp.Controllers
                             date,
                             CalendarWeekRule.FirstDay,
                             DayOfWeek.Monday);
+
+            #region Calculate week quota
+
+            var daysOfWeek = _context.WorkingHourses.Where(x => x.week == weekNum).Select(x => x.Date).Distinct();
+
+            int days = 0;
+
+            var daysOfWeekList = daysOfWeek.ToList(); 
+
+            foreach (var item in daysOfWeekList)
+            {
+                if(item.DayOfWeek != DayOfWeek.Sunday && item.DayOfWeek != DayOfWeek.Saturday)
+                {
+                    days++;
+                }
+            }
+
+             var res = days * 8;
+
+            ViewBag.Week = res;
+
+            #endregion
 
             var workingHoursFiltered = _context.WorkingHourses.Where(x => x.week == weekNum).OrderBy(x => x.Date.Day).ToList();
             var AbsencesFiltered = _context.Absences.Where(x => x.week == weekNum).OrderBy(x => x.Date.Day).ToList();
@@ -380,7 +434,7 @@ namespace TimeCheckApp.Controllers
                     var extended = ExtendedOvertimeHours.Sum(x => x);
                     var absence = AbsenceHours.Sum(x => x);
 
-                    ViewBag.CountH = regular + overtime + extended;
+                    var sumres = regular + overtime + extended + absence;
 
                     sumDTOs.Add(new SumDto
                     {
@@ -390,7 +444,8 @@ namespace TimeCheckApp.Controllers
                         RegularHours = regular,
                         OvertimeHours = overtime,
                         ExtendedOvertimeHours = extended,
-                        AbsenceHours = absence
+                        AbsenceHours = absence,
+                        SumHours = sumres
                     });
 
                     RegularHours.Clear();
@@ -401,8 +456,6 @@ namespace TimeCheckApp.Controllers
                     
                 }
             }
-
-            ViewBag.Reper = "true";
             return View(sumDTOs);
         }
         // GET: WorkingHoursController/Details/5
@@ -470,7 +523,19 @@ namespace TimeCheckApp.Controllers
 
             List<Tasks> tasks = new List<Tasks>();
             tasks = _context.Tasks.ToList();
-            ViewBag.Tasks = tasks;
+
+            var listTask = new List<SelectListItem>();
+
+            foreach (var item in tasks)
+            {
+                listTask.Add(new SelectListItem
+                {
+                    Text = item.TaskNumber + " , " + item.TaskName,
+                    Value = item.ID.ToString()
+                });
+            }
+
+            ViewBag.Tasks = listTask;
 
             return View(wH);
         }
